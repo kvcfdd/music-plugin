@@ -62,6 +62,11 @@ const SOURCE_ALIASES = {
   kg: "kg",
 }
 
+/** 解析单个音源值；支持中英文别名 */
+export function resolveSource(value, fallback = "qq") {
+  return SOURCE_ALIASES[String(value || "").trim().toLowerCase()] || fallback
+}
+
 /**
  * 解析「歌名 + 音源」参数
  * 支持「#搜索 晴天 netease」「#搜索 netease 晴天」两种写法
@@ -79,7 +84,7 @@ export function parseSource(input, fallback = "qq") {
 }
 
 /** 调用 txqq 接口搜索歌曲 */
-export async function searchSongs(keyword, source = "qq", limit = 5) {
+export async function searchSongs(keyword, source = "qq", limit = 5, signal = null) {
   const body = new URLSearchParams({
     input: keyword,
     filter: "name",
@@ -87,11 +92,12 @@ export async function searchSongs(keyword, source = "qq", limit = 5) {
     page: "1",
   })
 
+  const timeout = AbortSignal.timeout(config.request_timeout || 15000)
   const res = await fetch(API_URL, {
     method: "POST",
     headers: HEADERS,
     body,
-    signal: AbortSignal.timeout(config.request_timeout || 15000),
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 

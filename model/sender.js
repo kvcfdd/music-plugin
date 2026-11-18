@@ -34,14 +34,14 @@ export function parseFormat(value) {
 }
 
 /** 搜索结果的文本列表 */
-export function formatSongList(songs, keyword, source, format) {
+export function formatSongList(songs, keyword, source, format, hint = "回复序号播放，可附加格式：1 卡片 / 2 语音 / 3 文件 / 4 文本") {
   const name = SOURCE_NAMES[source] || source
   const mode = format ? `（${FORMAT_NAMES[format]}）` : ""
   const lines = [`【${name}】搜索「${keyword}」${mode}：`]
   songs.forEach((song, index) => {
     lines.push(`${index + 1}. ${song.title} - ${song.artist}`)
   })
-  lines.push("", "回复序号播放，可附加格式：1 卡片 / 2 语音 / 3 文件 / 4 文本")
+  if (hint) lines.push("", hint)
   return lines.join("\n")
 }
 
@@ -83,24 +83,27 @@ function songText(song) {
   return lines.join("\n")
 }
 
-/** 按指定格式发送，不自动降级 */
+/** 检查歌曲是否支持指定发送格式；返回错误文案或 null */
+export function checkFormat(song, format) {
+  const mode = parseFormat(format) || parseFormat(config.send_mode) || "card"
+  if (mode === "card") return cardSegment(song) ? null : "这首歌没有可用的卡片信息，请改用「文本」或「文件」"
+  if (mode === "record" || mode === "file") return song.audio ? null : "这首歌没有音频链接，请改用「卡片」或「文本」"
+  return null
+}
+
+/** 按指定格式发送 */
 export async function sendSong(e, song, format) {
   const mode = parseFormat(format) || parseFormat(config.send_mode) || "card"
+  const error = checkFormat(song, mode)
+  if (error) return e.reply(error)
 
   switch (mode) {
-    case "card": {
-      const seg = cardSegment(song)
-      if (!seg) return e.reply("这首歌没有可用的卡片信息，请改用「文本」或「文件」")
-      return e.reply(seg)
-    }
-    case "record": {
-      if (!song.audio) return e.reply("这首歌没有音频链接，请改用「卡片」或「文本」")
+    case "card":
+      return e.reply(cardSegment(song))
+    case "record":
       return e.reply(segment.record(song.audio))
-    }
-    case "file": {
-      if (!song.audio) return e.reply("这首歌没有音频链接，请改用「卡片」或「文本」")
+    case "file":
       return e.reply(segment.file(song.audio, fileName(song)))
-    }
     case "text":
       return e.reply(songText(song))
   }

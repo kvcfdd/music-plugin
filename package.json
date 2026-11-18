@@ -1,6 +1,6 @@
 {
   "name": "music-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "kvcfdd",
   "description": "基于 music.txqq.pro 的 Yunzai 点歌插件",
   "type": "module",
