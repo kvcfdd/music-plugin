@@ -1,0 +1,15 @@
+# 默认音源，可选 qq/netease/kugou/kuwo/migu/baidu/1ting/lizhi/qingting/ximalaya/5singyc/5singfc/kg
+source: netease
+
+# 每次搜索返回的歌曲数量
+search_limit: 5
+
+# 选歌等待时长（秒）
+select_timeout: 120
+
+# 接口请求超时（毫秒）
+request_timeout: 15000
+
+# 默认发送格式，命令未指定时使用
+# 可用：card(卡片) record(语音) file(文件) text(文本)
+send_mode: card
