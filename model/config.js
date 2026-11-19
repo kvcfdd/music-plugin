@@ -11,6 +11,9 @@ const userFile = path.join(configDir, "config.yaml")
 
 fs.mkdirSync(configDir, { recursive: true })
 
+/** 首次加载时以默认配置生成用户配置模板 */
+if (!fs.existsSync(userFile)) fs.copyFileSync(defFile, userFile)
+
 function read(file) {
   try {
     return yaml.parse(fs.readFileSync(file, "utf8")) || {}
